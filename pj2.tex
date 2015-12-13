@@ -1,0 +1,189 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programming/Coding Assignment
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Original author:
+% Ted Pavlic (http://www.tedpavlic.com)
+%
+% Note:
+% The \lipsum[#] commands throughout this template generate dummy text
+% to fill the template out. These commands should all be removed when 
+% writing assignment content.
+%
+% This template uses a Perl script as an example snippet of code, most other
+% languages are also usable. Configure them in the "CODE INCLUSION 
+% CONFIGURATION" section.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage[numbers]{natbib}
+\usepackage{url}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage[usenames,dvipsnames]{color} % Required for custom colors
+\usepackage{graphicx} % Required to insert images
+\usepackage{listings} % Required for insertion of code
+\usepackage{courier} % Required for the courier font
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{siunitx} % Provides the \SI{}{} and \si{} command for typesetting SI units
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{cases}
+\usepackage{mathtools}
+\lstloadlanguages{C}
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{EE3450 Project \#2: MIPS Dissembler and Pipeline Hazards} % Title
+
+\author{Chi-Ming Lee} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\begin{center}
+\begin{tabular}{l r}
+Instructor: Prof.Yarsun Hsu % Instructor/supervisor
+\end{tabular}
+\end{center}
+
+% If you wish to include an abstract, uncomment the lines below
+% \begin{abstract}
+% Abstract text
+% \end{abstract}
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Objective}
+
+In this project, you will use C or C++ to implement a special MIPS disassembler\cite{dis} that detects pipeline hazards in codes, and use MARS to examine the effect of pipelined datapath.
+Your disassembler should be able to convert MIPS machine code back to assembly, and insert some NOPs to pretend there are data hazard (RAW) and control hazard (branch) in the simulation. By this mean, the new code can help MARS to behave as if there is pipeline mechanism in it.
+5 MIPS programs you implemented in the previous project will be the benchmark to compare a pipeline processor with the original one. 
+Please write a report including below items at least:
+
+\begin{enumerate}
+    \item Brief introduction to your implementation.
+    \item Execution time comparison of the pipeline datapath and the non-pipelined one. (preferably in charts) 
+    \item Discussion on your experiment result.
+    \item Brief conclusion on this work.
+\end{enumerate}
+
+%----------------------------------------------------------------------------------------
+%	SECTION 2
+%----------------------------------------------------------------------------------------
+\section{Problem Statements}
+
+\subsection{Part 1: MIPS disassembler}
+
+A MIPS disassembler analyzes machine code, and reverse it to assembly. Please use MARS to dump the text segment of machine code in hexadecimal text format, and take it as input data of your disassembler. Here are hints for you:
+
+\begin{itemize}
+    \item Start address of the text segment (code) is always 0x04000000.
+    \item Be careful when you are doing arithmetic shift right. Data types "int" and "unsigned int" might lead to different result.
+    \item Use "enum" to increase the readability of your C code.
+    \item Due to syntax specification, you have to convert address offset of branch (i.e., bne or beq) into a specific tag. Assigning every instruction a unique tag may makes this handy work easier.
+    \item The new code don't need to be identical with the origin but you have to guarantee its functionality.
+    \item You only need to support instructions you used in the previous project instead of the full ISA.
+    \item If there is any distinction in MIPS ISA, please follow the one in MARS.
+\end{itemize}
+
+
+%\lstinputlisting[language=C]{fac_ite.c}
+%\lstinputlisting{fac_ite.asm}
+
+
+%----------------------------------------------------------------------------------------
+%	SECTION 3
+%----------------------------------------------------------------------------------------
+
+\subsection{Part 2: Simulating pipeline hazards by inserting NOPs}
+
+Let's use the basic pipelined datapath in page \#11 of the slide "L4-3-pipe2.pdf", which is described below:
+\begin{itemize}
+    \item No forwarding unit.
+    \item Branch target address is latched into PC in the 4th stage.
+\end{itemize}
+
+Based on part A, please let your disassembler detect data hazard (RAW) and control hazard (branch delay slot) in MIPS code, and insert NOPs into where hazards happen. (just think you are solving hazards by a software approach.)
+After that, you have to confirm the functionality of the new codes, and run them on MARS to record their cycle counts.
+Finally, follow exercise-4.8 of homework-6 to assume latencies of stages (you don't need to consider the latency of pipeline registers.), and calculate execution time of a pipelined processor and non-pipelined one in each application.
+
+
+\section{What to submit}
+    
+\begin{itemize}
+    \item Five hex codes, fibA.hex, fibB.hex, fibC.hex, fibD.hex and fibE.hex dumped by MARS.
+    \item Disassembler source code (dasm.c or dasm.cpp). You have to make sure your code can be tested in the terminal of EEWS as below:
+    \begin{enumerate}
+	\item Enter:\ \ gcc\ \ dasm.c\ \ -o\ \ dasm
+	\item Enter:\ \ ./dasm\ \ fibA.hex\ \ fibA.pipeline
+    \end{enumerate}
+	Your disassembler will convert the hex code "fibA.hex" into pipelined version assembly "fibA.pipeline". 
+	If you use C++, replace "gcc" with "g++" in above steps. 
+	If you have multiple source files, you have to submit a makefile\cite{make} and name the output binary as "dasm" similarly.
+    \item A report in PDF format named "report.pdf"
+\end{itemize}
+Please zip these items directly without any folder, and name your zip file as "ID+pj2.zip".
+For example, mine is "103061568pj2.zip".
+
+
+
+%----------------------------------------------------------------------------------------
+%	SECTION 4
+%----------------------------------------------------------------------------------------
+
+%\section{Bonus: Improving pipelined datapath}
+%
+%Since you have learned several hardware approaches to deal with pipeline hazards, you can further design a more powerful disassembler that also simulates the improved pipeline taught in the class.
+%For example, the user may specify whether there is a forwarding unit in the datapath, what stage calculates BTA, etc. 
+%Please use your new disassembler to generate codes that simulate the pipelined design described in XX, and notice that there are still some inevitable stalls in it.
+%In addition, by considering the change on hardware, you need to re-model the cycle time of the pipelined datapath with reasonable assumption, and compare its performance with your work in part 2 in plots. 
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\bibliographystyle{ieeetr}
+
+\bibliography{pj2}
+
+%----------------------------------------------------------------------------------------
+
+
+\end{document}
