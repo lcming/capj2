@@ -196,7 +196,7 @@ void printLIM(int ir, char* head)
         fprintf(fout,"tag%d:", cnt);
     fprintf(fout, "%s, $%d, %d\n", head, rt, offset);
 }
-void printB(int ir, char* head, int i)
+void printB(int ir, char* head)
 {
     int rs = mask(ir, 25, 21);
     int rt = mask(ir, 20, 16);
@@ -209,7 +209,7 @@ void printB(int ir, char* head, int i)
 
     if(cnt)
         fprintf(fout, "tag%d:", cnt);
-    fprintf(fout, "%s $%d, $%d, tag%d\n", head, rs, rt, i+offset+1);
+    fprintf(fout, "%s $%d, $%d, tag%d\n", head, rs, rt, cnt+offset+1);
 }
 void printJ(int ir, char* head)
 {
@@ -249,42 +249,16 @@ int main(int argc, char* argv[])
 
     FILE* fin = fopen(argv[1], "r");
     fout = fopen(argv[2], "w");
-    unsigned int ins;
-    
-    fseek(fin, 0, SEEK_END);
-    size_t size = ftell (fin);
-    int len = size / 9;
-    rewind(fin);
-    printf("size = %d\n", size);
-    unsigned int* asdf = (unsigned int*) malloc (sizeof(unsigned int) * len);
-    int i = 0;
-    while(fin)
-    {
-        fscanf(fin, "%x", &asdf[i]);
-        if( feof(fin) )
-            break;
-        printf("%x\n", asdf[i++]);
-    }
-    
-    //unsigned int asdf[]={0x022DA822, 0x12A70003, 0x8D930018, 0x02689820, 0xAD930018, 0x02697824, 0xAD8FFFF4,0x018C6020, 0x02A4A825, 0x158FFFF6, 0x8E59FFF0};
-    char* ch=(char*)asdf;
-    int br=sizeof(asdf);
 
-    //printf("%i\n",int(1) >> 5);
-    //while((br=read(0,ch,sizeof(ch)))>0) {
-    printf("%d instructions\n", len);
-    int* ins_array=(int*)ch;
     fprintf(fout, ".data\nqmat:  .word 1, 1, 1, 0\n");
     fprintf(fout, ".text\n.globl main\nmain:");
-    for( i = 0; i<len;i++) 
+    
+    while( !feof(fin) )
     {
         char* head;
-        int ins=ins_array[i];
-        //unsigned int opcode=ins & 0xFC000000;
-        //opcode = opcode >> 26;
+        int ins;
+        fscanf(fin, "%x", &ins);
         unsigned int opcode = mask (ins, 31, 26);
-        //printf("opcode: %i\n",opcode);
-        unsigned int addr=0x7A060+i*4;
         switch(opcode)
         {
             case arith:
@@ -344,11 +318,11 @@ int main(int argc, char* argv[])
                 break;
             case beq:  //beq
                 head = "beq";
-                printB(ins, head, i);
+                printB(ins, head);
                 break;
             case bne:  //bne
                 head = "bne";
-                printB(ins, head, i);
+                printB(ins, head);
                 break;
             case   j:
                 head = "j";
